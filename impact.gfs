@@ -1,4 +1,4 @@
-4 3 GfsAxi GfsBox GfsGEdge {} {
+2 1 GfsAxi GfsBox GfsGEdge {} {
   GfsGlobal { 
     #define D0           0.0038
     #define radius   1./5
@@ -26,7 +26,7 @@
       #define We    80
 
     }
-  Time { end = 300 }
+  Time { end = 1 }
   Refine 7
   
   RefineSolid 8
@@ -70,16 +70,12 @@
   
   OutputTime { istep = 10 } stderr
   OutputProjectionStats { istep = 10 } stderr
-  OutputSimulation { start = end } file2.gts 
-  OutputSimulation { istep = 30 } file_3.gts
+  OutputSimulation { start = end } end.gts 
+  OutputSimulation { step = 0.1 } temp-%g.gts
  
   GModule gfsview
-  OutputView { istep = 1 } { ppm2mpeg > vort.mpg} { 
-  width = 540 height = 540 } xoom.gfv
-  
-     OutputPPM { start=0} { ppm2mpeg > gridconv.mpg } {
-    min = 0 max = 0.4 v = T
-  }
+  OutputView { step = 0.02 } isolines-%g.ppm { format = PPM} xoom.gfv
+
     OutputPPM { istep = 2 } { ppm2mpeg > t.mpg } {
     min = 0 max = 0.4 v = T
   }
@@ -93,21 +89,12 @@ GfsBox {
  top = Boundary {BcAngle T 90}
  bottom = Boundary}
 GfsBox {
-  top = Boundary {BcAngle T 90}
-  bottom = Boundary
-}
-GfsBox {
-  top = Boundary {BcAngle T 90}
-  bottom = Boundary
-}
-GfsBox {
   right = BoundaryOutflow 
   top = Boundary {BcAngle T 90}
   bottom = Boundary
 }
 1 2 right
-2 3 right
-3 4 right
+
 
 
 
