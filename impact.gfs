@@ -1,0 +1,116 @@
+4 3 GfsAxi GfsBox GfsGEdge {} {
+  GfsGlobal { 
+    #define D0           0.0038
+    #define radius   1./5
+    #define U0           1.23
+     
+        
+    #define MU_L  8.9e-4         /* liquid dynamic viscosity 8.9e-4*/
+    #define MU_G  1.7e-5         /* air dynamic viscosity 1.7e-5*/
+    #define RHO_L 1000            /* liquid density */
+    #define RHO_G 1.293          /* air density */
+    #define sigma 0.072             /* surface tension */
+    #define ca 40               /* contact angle */
+    
+    /* ************** */
+    /* Fixed input (warning: modification in the below section requires
+     *  deep understaning of Gerris+) 
+     */
+    #define var(T,min,max) (CLAMP(T,0,1)*(max - min) + min)
+    #define rho(T) var(T, RHO_G/RHO_L, 1.)
+    #define mu(T)  var(T, MU_G/MU_L, 1.)
+    
+    /* Reynolds number define as RHO_L*V0*D0/MU_L #3539,1769.*/
+      #define Re    5250
+    /* Weber number define as RHO_L*V0^2*D0/sigma_L 5.5*/
+      #define We    80
+
+    }
+  Time { end = 300 }
+  Refine 7
+  
+  RefineSolid 8
+  
+  
+  Solid ({
+  double a = cube(-.5,-.25, 0, 1);
+  return a;
+  })
+  
+  VariableTracerVOFHeight T 
+  VariableFiltered T1 T 1
+  
+  
+  InitFraction T (-cube(1.7,0, 0,4)) 
+  
+
+   
+   
+  VariableCurvature K T Kmax
+  SourceTension T 2*radius/We  K 
+  SurfaceAngleBc T (x < 0.261 ? 20 : 20)
+  
+
+  AdaptFunction { istart = 5 istep = 10 } {
+	cmax = 0.2
+	maxlevel = 10
+	cfactor = 2
+    } (T > 0 && T < 1)*Kmax*dL
+
+ 
+  
+  
+ 
+  #Source {} U 1.45
+  
+  
+  SourceViscosity 2.*radius/Re*mu(T1)
+  PhysicalParams {alpha = 1./rho(T1)}
+  
+  
+  OutputTime { istep = 10 } stderr
+  OutputProjectionStats { istep = 10 } stderr
+  OutputSimulation { start = end } file2.gts 
+  OutputSimulation { istep = 30 } file_3.gts
+ 
+  GModule gfsview
+  OutputView { istep = 1 } { ppm2mpeg > vort.mpg} { 
+  width = 540 height = 540 } xoom.gfv
+  
+     OutputPPM { start=0} { ppm2mpeg > gridconv.mpg } {
+    min = 0 max = 0.4 v = T
+  }
+    OutputPPM { istep = 2 } { ppm2mpeg > t.mpg } {
+    min = 0 max = 0.4 v = T
+  }
+
+
+}
+
+
+GfsBox {
+ left = GfsBoundaryInflowConstant 1 
+ top = Boundary {BcAngle T 90}
+ bottom = Boundary}
+GfsBox {
+  top = Boundary {BcAngle T 90}
+  bottom = Boundary
+}
+GfsBox {
+  top = Boundary {BcAngle T 90}
+  bottom = Boundary
+}
+GfsBox {
+  right = BoundaryOutflow 
+  top = Boundary {BcAngle T 90}
+  bottom = Boundary
+}
+1 2 right
+2 3 right
+3 4 right
+
+
+
+
+
+
